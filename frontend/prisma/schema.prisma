@@ -1,0 +1,53 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+model Customer {
+  id              Int                       @id @default(autoincrement())
+  customer_name   String?
+  mobile_number   String?
+  dealer_name     String?
+  dealer_code     String?
+  address         String?
+  village         String?
+  district        String?
+  state           String?
+  pincode         String?
+  bike_model      String?
+  invoice_amount  Float?
+  purchase_date   DateTime?
+  latitude        Float?
+  longitude       Float?
+  geography_point Unsupported("geography")?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  @@index([village])
+  @@index([district])
+  @@index([bike_model])
+  @@index([geography_point], map: "customer_geog_idx", type: Gist)
+}
+
+model LocationDictionary {
+  id               Int      @id @default(autoincrement())
+  original_name    String   @unique
+  corrected_name   String
+  confidence_score Float    @default(0.0)
+  createdAt        DateTime @default(now())
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}

@@ -187,7 +187,7 @@ export default function Home() {
                return (
                  <button
                    key={tab.id}
-                   onClick={() => setActiveTab(tab.id as TabId)}
+                   onClick={() => setActiveTab(tab.id as Tab)}
                    className={`
                      shrink-0 flex items-center gap-2 lg:gap-3 px-4 lg:px-3 py-2 lg:py-2.5 rounded-full lg:rounded-lg text-[13px] lg:text-sm font-medium transition-all duration-200
                      ${active 

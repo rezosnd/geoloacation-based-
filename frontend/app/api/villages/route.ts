@@ -7,10 +7,10 @@ export async function GET(request: Request) {
   const query = searchParams.get('query');
 
   try {
-    let villages = [];
+    let villages: any[] = [];
 
     if (pincode) {
-      villages = await prisma.$queryRaw`
+      villages = await prisma.$queryRaw<any[]>`
         SELECT village, district, pincode, COUNT(*)::int as count 
         FROM "Customer" 
         WHERE pincode = ${pincode} AND village IS NOT NULL
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       `;
     } else if (query) {
       const wildcard = `%${query}%`;
-      villages = await prisma.$queryRaw`
+      villages = await prisma.$queryRaw<any[]>`
         SELECT village, district, pincode, COUNT(*)::int as count 
         FROM "Customer" 
         WHERE village ILIKE ${wildcard} AND village IS NOT NULL

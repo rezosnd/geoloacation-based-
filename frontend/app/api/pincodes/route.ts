@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const pincodes = await prisma.$queryRaw`
+    const pincodes = (await prisma.$queryRaw`
       SELECT 
         pincode, 
         MAX(district) as location, 
@@ -12,7 +12,7 @@ export async function GET() {
       WHERE pincode IS NOT NULL AND pincode != ''
       GROUP BY pincode 
       ORDER BY count DESC
-    `;
+    `) as any[];
 
     return NextResponse.json(pincodes);
   } catch (error: any) {

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
   try {
     // We use a raw query for ST_DWithin and ST_Distance using geography
-    const customers = await prisma.$queryRaw`
+    const customers = (await prisma.$queryRaw`
       SELECT 
         id, 
         customer_name, 
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
           ${radiusMeters}
         )
       ORDER BY distance ASC;
-    `;
+    `) as any[];
 
     return NextResponse.json(customers);
   } catch (error: any) {

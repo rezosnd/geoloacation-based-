@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, ChevronLeft, ChevronRight, Users, Phone, MapPin, Tag, Calendar } from 'lucide-react';
+
+const IconUsers = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
+const IconSearch = ({ size = 18 }: { size?: number }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>;
+const IconPhone = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>;
+const IconMapPin = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>;
+const IconTag = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>;
+const IconCalendar = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>;
+const IconChevronLeft = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>;
+const IconChevronRight = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>;
 
 export default function DatabaseSection() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -38,67 +46,63 @@ export default function DatabaseSection() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-10">
-      <div className="bg-white border border-neutral-100 rounded-[24px] p-6 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-neutral-900">Customer Database</h2>
-          <p className="text-sm text-neutral-500 font-medium mt-1">Total Records: {totalCount.toLocaleString()}</p>
+    <div className="space-y-4 pb-10">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-2">
+        <div className="text-center md:text-left">
+          <p className="text-sm text-gray-500 font-medium">Total Records: <span className="text-gray-900 font-semibold">{totalCount.toLocaleString()}</span></p>
         </div>
         
-        <form onSubmit={handleSearch} className="w-full md:w-[400px] relative">
+        <form onSubmit={handleSearch} className="w-full md:w-[320px] relative">
+          <div className="absolute left-3 top-[10px] text-gray-400">
+            <IconSearch />
+          </div>
           <input 
             type="text" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search name, mobile, village, dealer..." 
-            className="w-full bg-neutral-50 border border-neutral-200 rounded-[16px] px-5 py-4 pl-12 text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-200 transition-all font-medium placeholder:font-normal"
+            placeholder="Search records..." 
+            className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-10 pr-4 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-shadow"
           />
-          <Search className="absolute left-4 top-[18px] text-neutral-400" size={20} />
-          <button type="submit" className="absolute right-2 top-2 bg-neutral-900 text-white p-2 rounded-[10px] hover:bg-neutral-800 transition-colors">
-            <Search size={16} />
-          </button>
         </form>
       </div>
 
-      <div className="bg-white rounded-[24px] border border-neutral-100 shadow-sm overflow-hidden">
+      <div className="glass-panel overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-[#fafafa] border-b border-neutral-100 text-neutral-500 uppercase tracking-wider font-semibold text-xs">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
               <tr>
-                <th className="px-6 py-4"><div className="flex items-center gap-2"><Users size={14} /> Customer</div></th>
-                <th className="px-6 py-4"><div className="flex items-center gap-2"><Phone size={14} /> Contact</div></th>
-                <th className="px-6 py-4"><div className="flex items-center gap-2"><MapPin size={14} /> Location</div></th>
-                <th className="px-6 py-4"><div className="flex items-center gap-2"><Tag size={14} /> Bike Model</div></th>
-                <th className="px-6 py-4"><div className="flex items-center gap-2"><Calendar size={14} /> Purchase Date</div></th>
+                <th className="px-6 py-4"><div className="flex items-center gap-2"><IconUsers /> Customer</div></th>
+                <th className="px-6 py-4"><div className="flex items-center gap-2"><IconPhone /> Contact</div></th>
+                <th className="px-6 py-4"><div className="flex items-center gap-2"><IconMapPin /> Location</div></th>
+                <th className="px-6 py-4"><div className="flex items-center gap-2"><IconTag /> Model</div></th>
+                <th className="px-6 py-4"><div className="flex items-center gap-2"><IconCalendar /> Date</div></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center text-neutral-400">
-                    <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin mx-auto mb-4"></div>
-                    Loading customer data...
+                  <td colSpan={5} className="px-6 py-20 text-center text-gray-500">
+                    <p className="font-medium text-sm">Loading records...</p>
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center text-neutral-400">
-                    <Users size={32} className="mx-auto mb-4 opacity-50" />
-                    No customers found matching your criteria.
+                  <td colSpan={5} className="px-6 py-20 text-center text-gray-500">
+                    <p className="font-medium text-sm">No records found.</p>
                   </td>
                 </tr>
               ) : (
                 customers.map((c) => (
-                  <tr key={c.id} className="hover:bg-neutral-50/50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-neutral-900">{c.customer_name || 'Unknown'}</td>
-                    <td className="px-6 py-4 font-medium text-neutral-600">{c.mobile_number || 'N/A'}</td>
-                    <td className="px-6 py-4 text-neutral-600">{c.village}, {c.district}</td>
+                  <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-gray-900">{c.customer_name || 'Unknown'}</td>
+                    <td className="px-6 py-4">{c.mobile_number || 'N/A'}</td>
+                    <td className="px-6 py-4">{c.village}, {c.district}</td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md">
+                      <span className="inline-flex items-center text-xs font-medium bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md">
                         {c.bike_model || 'N/A'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-neutral-500 font-medium">
+                    <td className="px-6 py-4 text-gray-500">
                       {c.purchase_date ? new Date(c.purchase_date).toLocaleDateString() : 'N/A'}
                     </td>
                   </tr>
@@ -110,24 +114,24 @@ export default function DatabaseSection() {
         
         {/* Pagination */}
         {!loading && totalPages > 0 && (
-          <div className="border-t border-neutral-100 p-4 bg-white flex items-center justify-between">
-            <span className="text-sm text-neutral-500 font-medium">
-              Showing page {page} of {totalPages}
+          <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
+            <span className="text-sm text-gray-500 font-medium">
+              Page {page} of {totalPages}
             </span>
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="p-2 rounded-xl border border-neutral-200 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 border border-gray-200 bg-white rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <ChevronLeft size={18} className="text-neutral-700" />
+                <IconChevronLeft />
               </button>
               <button 
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="p-2 rounded-xl border border-neutral-200 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 border border-gray-200 bg-white rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <ChevronRight size={18} className="text-neutral-700" />
+                <IconChevronRight />
               </button>
             </div>
           </div>

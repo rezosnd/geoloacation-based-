@@ -1,9 +1,32 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { UploadCloud, FileText, AlertCircle } from 'lucide-react';
 import Papa from 'papaparse';
 import axios from 'axios';
+
+// Clean Professional Icons
+const IconUpload = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#52525b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
+
+const IconFile = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#52525b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+  </svg>
+);
+
+const IconAlert = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+);
 
 export default function UploadSection({ onSuccess }: { onSuccess: () => void }) {
   const [file, setFile] = useState<File | null>(null);
@@ -31,11 +54,10 @@ export default function UploadSection({ onSuccess }: { onSuccess: () => void }) 
       complete: async (results) => {
         try {
           if (results.meta.fields && results.meta.fields.length < 3) {
-            throw new Error("Could not detect columns. Please ensure your file is a valid comma or tab separated CSV/TSV.");
+            throw new Error("Could not detect columns. Ensure valid CSV format.");
           }
           const rows = results.data as any[];
           
-          // Helper to safely find a value by multiple possible case-insensitive keys
           const findVal = (row: any, keys: string[]) => {
             const normalizedRow: Record<string, any> = {};
             for (const k in row) {
@@ -64,12 +86,10 @@ export default function UploadSection({ onSuccess }: { onSuccess: () => void }) 
           })).filter(r => r.customer_name || r.mobile_number || r.village || r.dealer_code);
 
           if (mappedRows.length === 0) {
-            console.error("Columns detected:", results.meta.fields);
-            console.error("First row:", rows[0]);
-            throw new Error("No valid data found. Check your column headers.");
+            throw new Error("No valid data found. Check headers.");
           }
 
-          const BATCH_SIZE = 100; // Smaller batches to avoid Vercel timeouts or payload too large
+          const BATCH_SIZE = 100; 
           const totalBatches = Math.ceil(mappedRows.length / BATCH_SIZE);
           
           for (let i = 0; i < totalBatches; i++) {
@@ -93,40 +113,40 @@ export default function UploadSection({ onSuccess }: { onSuccess: () => void }) 
   };
 
   return (
-    <div className="bg-white rounded-[24px] border border-neutral-100 shadow-sm flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
+    <div className="flex flex-col items-center justify-center min-h-[50vh] text-center max-w-3xl mx-auto">
       <div 
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        className="w-full max-w-2xl p-12 rounded-[24px] border-2 border-dashed border-neutral-200 transition-all cursor-pointer hover:bg-neutral-50/50 hover:border-neutral-300"
+        className="w-full p-12 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
       >
-        <div className="mx-auto w-20 h-20 bg-neutral-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
-          <UploadCloud size={32} className="text-neutral-600" />
+        <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-gray-200">
+          <IconUpload />
         </div>
-        <h2 className="text-2xl font-bold mb-3 text-neutral-900">Upload Intelligence Data</h2>
-        <p className="text-neutral-500 mb-8 max-w-md mx-auto text-sm leading-relaxed font-medium">
-          Drag and drop your customer CSV file here. The system will automatically clean addresses, geocode locations, and build your radius database.
+        <h2 className="text-xl font-semibold mb-2 text-gray-900">Upload Data</h2>
+        <p className="text-gray-500 mb-8 max-w-sm mx-auto text-sm">
+          Drag and drop your CSV file here, or click to browse your files.
         </p>
 
         {!file ? (
-          <label className="bg-neutral-900 text-white px-8 py-4 rounded-[16px] font-semibold cursor-pointer shadow-md hover:bg-neutral-800 hover:shadow-lg transition-all inline-block">
-            Browse CSV Files
+          <label className="glass-button px-6 py-2.5 cursor-pointer inline-block text-sm">
+            Browse Files
             <input type="file" accept=".csv,.tsv,.txt" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </label>
         ) : (
-          <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-200 text-left shadow-sm">
-            <div className="flex items-center justify-between mb-4">
+          <div className="border border-gray-200 bg-white p-5 rounded-xl text-left shadow-sm">
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-white border border-neutral-200 rounded-xl shadow-sm">
-                  <FileText className="text-neutral-600" />
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <IconFile />
                 </div>
                 <div>
-                  <p className="font-semibold text-neutral-900">{file.name}</p>
-                  <p className="text-sm text-neutral-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  <p className="font-medium text-gray-900 text-sm truncate max-w-[200px] sm:max-w-xs">{file.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
               </div>
               <button 
                 onClick={() => setFile(null)} 
-                className="text-sm font-medium text-red-500 hover:text-red-700 transition-colors bg-red-50 px-3 py-1.5 rounded-full"
+                className="text-xs font-medium text-gray-500 hover:text-red-600 px-3 py-1.5 rounded-md hover:bg-red-50 transition-colors"
                 disabled={uploading}
               >
                 Remove
@@ -134,28 +154,28 @@ export default function UploadSection({ onSuccess }: { onSuccess: () => void }) 
             </div>
             
             {uploading ? (
-              <div className="space-y-3 mt-6">
-                <div className="flex justify-between text-sm font-medium">
-                  <span className="text-neutral-600">Processing & Geocoding...</span>
-                  <span className="text-neutral-900">{progress}%</span>
+              <div className="space-y-2 mt-4">
+                <div className="flex justify-between text-xs font-medium text-gray-500">
+                  <span>Processing data...</span>
+                  <span>{progress}%</span>
                 </div>
-                <div className="w-full bg-neutral-200 rounded-full h-2.5 overflow-hidden">
-                  <div className="bg-neutral-900 h-2.5 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                  <div className="bg-gray-900 h-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
                 </div>
               </div>
             ) : (
               <button 
                 onClick={handleUpload}
-                className="w-full bg-neutral-900 text-white py-3.5 rounded-full font-medium hover:bg-neutral-800 shadow-md hover:shadow-lg transition-all mt-6"
+                className="w-full bg-gray-900 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors mt-4"
               >
-                Start Processing
+                Start Upload
               </button>
             )}
             
             {error && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start space-x-3 text-red-600">
-                <AlertCircle size={20} className="shrink-0 mt-0.5" />
-                <p className="text-sm font-medium">{error}</p>
+              <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg flex items-start space-x-3">
+                <div className="shrink-0 mt-0.5"><IconAlert /></div>
+                <p className="text-sm font-medium text-red-800">{error}</p>
               </div>
             )}
           </div>

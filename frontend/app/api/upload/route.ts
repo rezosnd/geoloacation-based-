@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { normalizeLocations } from '@/lib/locationNormalization';
+import { normalizeWithPincode } from '@/lib/pincodeCorrection';
 import { geocodeAddresses } from '@/lib/geocoding';
 
 export async function POST(request: Request) {
@@ -17,7 +18,15 @@ export async function POST(request: Request) {
     const locationMapping = await normalizeLocations([...rawVillages, ...rawDistricts]);
 
     for (const r of records) {
-      if (r.village) r.village = locationMapping.get(r.village) || r.village;
+      if (r.village) {
+        // First try the internal dictionary mappings
+        let mapped = locationMapping.get(r.village) || r.village;
+        // Then run it through the Official Pincode API to auto-correct typos
+        if (r.pincode) {
+           mapped = await normalizeWithPincode(mapped, r.pincode);
+        }
+        r.village = mapped;
+      }
       if (r.district) r.district = locationMapping.get(r.district) || r.district;
     }
 

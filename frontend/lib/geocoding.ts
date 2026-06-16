@@ -60,20 +60,58 @@ export async function geocodeAddresses(records: any[]): Promise<any[]> {
            break; // Success
         }
 
-        // Fallback to Free OpenStreetMap (Slow, Rate Limited)
-        const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
-          params: { q: query, format: 'json', limit: 1, countrycodes: 'in' },
-          headers: {
-            'User-Agent': 'VeritasCoRadiusIntelligence/1.0',
-            'Referer': 'https://veritasco.com',
-            'Accept-Language': 'en-US,en;q=0.9',
-          }
-        });
+        // Fallback to Free APIs (Photon and Nominatim) with Location Degradation
+        // 1. Better matching: We use Photon API first (better fuzzy matching).
+        // 2. Degradation: If Village is not found, we fallback to District, then State to ensure we at least get a map point.
+        const queries = [
+          query, // Level 1: Village, District, State
+          `${record.district || ''}, ${record.state || ''}`.replace(/,\s*,/g, ',').trim(), // Level 2: District, State
+          `${record.state || ''}`.replace(/,\s*,/g, ',').trim() // Level 3: State only
+        ].filter(q => q.length > 2);
 
-        if (response.data && response.data.length > 0) {
-          const location = response.data[0];
-          record.latitude = parseFloat(location.lat);
-          record.longitude = parseFloat(location.lon);
+        let foundLocation: {lat: number, lng: number} | null = null;
+
+        for (let i = 0; i < queries.length; i++) {
+          const q = queries[i];
+          
+          // 1. Try Free Photon API (Better fuzzy matching, open source)
+          try {
+            const photonRes = await axios.get(`https://photon.komoot.io/api/`, {
+              params: { q: q, limit: 1 }
+            });
+            if (photonRes.data?.features?.length > 0) {
+              const coords = photonRes.data.features[0].geometry.coordinates; // Photon returns [lon, lat]
+              foundLocation = { lat: coords[1], lng: coords[0] };
+              break; // Found it!
+            }
+          } catch (e: any) {
+            console.warn(`Photon API error for query "${q}":`, e.message);
+          }
+
+          // 2. Try Nominatim (OSM) as backup
+          const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
+            params: { q: q, format: 'json', limit: 1, countrycodes: 'in' },
+            headers: {
+              'User-Agent': 'VeritasCoRadiusIntelligence/1.0',
+              'Referer': 'https://veritasco.com',
+              'Accept-Language': 'en-US,en;q=0.9',
+            }
+          });
+
+          if (response.data && response.data.length > 0) {
+            const location = response.data[0];
+            foundLocation = { lat: parseFloat(location.lat), lng: parseFloat(location.lon) };
+            break; // Found it!
+          }
+          
+          if (i < queries.length - 1) {
+             await sleep(1000); // Sleep slightly before next query to respect limits
+          }
+        }
+
+        if (foundLocation) {
+          record.latitude = foundLocation.lat;
+          record.longitude = foundLocation.lng;
           uniqueAddresses.set(addressKey, { lat: record.latitude, lng: record.longitude });
         } else {
           record.latitude = null;
@@ -81,7 +119,7 @@ export async function geocodeAddresses(records: any[]): Promise<any[]> {
           uniqueAddresses.set(addressKey, { lat: null, lng: null });
         }
         
-        await sleep(1500); // Respect 1 request/sec limit
+        await sleep(1500); // Respect rate limit for next record
         break; // Success
 
 
